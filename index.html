@@ -5,231 +5,67 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>方塊衝刺</title>
     <style>
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-        body {
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #1e1e2f 0%, #111119 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            overflow: hidden;
-            color: #fff;
-        }
-        #ui-layer {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            margin-bottom: 15px;
-        }
-        #score-board {
-            font-size: 22px;
-            font-weight: bold;
-            color: #ecf0f1;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
-        #score-board span {
-            color: #f1c40f;
-        }
-        #shield-timer {
-            font-size: 16px;
-            font-weight: bold;
-            color: #00f2fe;
-            background: rgba(0, 242, 254, 0.2);
-            padding: 4px 12px;
-            border-radius: 20px;
-            border: 1px solid #00f2fe;
-            display: none;
-            box-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
-        }
-        #game-container {
-            position: relative;
-            width: 1000px;
-            height: 400px;
-            background: linear-gradient(to bottom, #1a1c2e 0%, #2c3e50 70%, #34495e 100%);
-            border: 4px solid #f1c40f;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-        }
-        #game-container::before {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
-            background-size: 40px 40px;
-            top: 0;
-            left: 0;
-        }
-        #player {
-            position: absolute;
-            left: 80px;
-            bottom: 0;
-            width: 40px;
-            height: 80px;
-            background: #3498db;
-            border: 2px solid #fff;
-            border-radius: 6px;
-            box-shadow: 0 0 15px #3498db;
-            transform-origin: bottom center;
-            transition: transform 0.1s ease-in-out, background-color 0.15s, box-shadow 0.15s;
-        }
-        #player.jumping-shrink {
-            transform: scaleY(0.5); 
-            background: #f1c40f;
-            box-shadow: 0 0 20px #f1c40f;
-        }
-        #player.ducking {
-            transform: scaleY(0.5);
-            background: #e67e22;
-            box-shadow: 0 0 15px #e67e22;
-        }
-        #player.invincible {
-            background: linear-gradient(45deg, #00f2fe, #4facfe, #00f2fe);
-            border-color: #00f2fe;
-            box-shadow: 0 0 25px #00f2fe, inset 0 0 10px #fff;
-            animation: shieldGlow 0.5s linear infinite;
-        }
-        @keyframes shieldGlow {
-            0% { filter: hue-rotate(0deg); }
-            100% { filter: hue-rotate(360deg); }
-        }
-        #ground {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, #f1c40f, #f39c12);
-            box-shadow: 0 0 10px #f1c40f;
-        }
-        .obstacle {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            background: #e74c3c;
-            border: 2px solid #fff;
-            border-radius: 6px;
-            box-shadow: 0 0 15px #e74c3c;
-        }
-        #controls {
-            display: flex;
-            gap: 25px;
-            margin-top: 25px;
-            width: 100%;
-            max-width: 500px;
-            padding: 0 10px;
-        }
-        .btn {
-            flex: 1;
-            height: 70px;
-            background-color: #2ecc71;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 20px;
-            font-weight: bold;
-            box-shadow: 0 6px #27ae60;
-            cursor: pointer;
-            touch-action: manipulation;
-        }
-        .btn:active {
-            transform: translateY(4px);
-            box-shadow: 0 2px #27ae60;
-        }
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+        body { margin: 0; padding: 0; background: linear-gradient(135deg, #1e1e2f 0%, #111119 100%); font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; color: #fff; }
+        #ui-layer { display: flex; flex-direction: column; align-items: center; gap: 5px; margin-bottom: 15px; }
+        #score-board { font-size: 22px; font-weight: bold; color: #ecf0f1; text-shadow: 0 2px 4px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 15px; }
+        #score-board span { color: #f1c40f; }
+        #mute-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 4px 10px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+        #shield-timer { font-size: 16px; font-weight: bold; color: #00f2fe; background: rgba(0, 242, 254, 0.2); padding: 4px 12px; border-radius: 20px; border: 1px solid #00f2fe; display: none; }
+        #game-container { position: relative; width: 1000px; height: 400px; background: linear-gradient(to bottom, #1a1c2e 0%, #2c3e50 70%, #34495e 100%); border: 4px solid #f1c40f; border-radius: 12px; overflow: hidden; }
+        #game-container::before { content: ''; position: absolute; width: 100%; height: 100%; background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 40px 40px; top: 0; left: 0; }
+        #player { position: absolute; left: 80px; bottom: 0; width: 40px; height: 80px; background: #3498db; border: 2px solid #fff; border-radius: 6px; box-shadow: 0 0 15px #3498db; transform-origin: bottom center; transition: transform 0.1s; }
+        #player.jumping-shrink { transform: scaleY(0.5); background: #f1c40f; }
+        #player.ducking { transform: scaleY(0.5); background: #e67e22; }
+        #player.invincible { background: linear-gradient(45deg, #00f2fe, #4facfe, #00f2fe); animation: shieldGlow 0.5s linear infinite; }
+        @keyframes shieldGlow { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+        #ground { position: absolute; bottom: 0; width: 100%; height: 4px; background: #f1c40f; }
+        .obstacle { position: absolute; width: 40px; height: 40px; background: #e74c3c; border: 2px solid #fff; border-radius: 6px; }
+        #controls { display: flex; gap: 25px; margin-top: 25px; width: 100%; max-width: 500px; }
+        .btn { flex: 1; height: 70px; background-color: #2ecc71; color: white; border: none; border-radius: 12px; font-size: 20px; font-weight: bold; box-shadow: 0 6px #27ae60; cursor: pointer; }
+        .btn:active { transform: translateY(4px); box-shadow: 0 2px #27ae60; }
         #btn-down { background-color: #e67e22; box-shadow: 0 6px #b15e16; }
-        #btn-down:active { box-shadow: 0 2px #b15e16; }
-
-        .modal {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(10, 10, 15, 0.85);
-            color: white;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            text-align: center;
-            z-index: 10;
-            backdrop-filter: blur(5px);
-        }
-        .modal h2 { margin-top: 0; color: #f1c40f; font-size: 26px; }
-        #quiz-question { font-size: 20px; margin: 15px 0; color: #ecf0f1; }
-        .options-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            width: 100%;
-            max-width: 500px;
-            margin-top: 15px;
-        }
-        .option-btn {
-            padding: 15px;
-            background-color: #34495e;
-            color: white;
-            border: 2px solid #7f8c8d;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 18px;
-            font-weight: bold;
-            transition: all 0.2s;
-        }
-        .option-btn:hover { background-color: #2980b9; border-color: #fff; }
-        
-        @media (max-width: 1040px) {
-            #game-container {
-                width: 95vw;
-                height: 35vh;
-            }
-        }
+        .modal { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(10, 10, 15, 0.9); color: white; flex-direction: column; align-items: center; justify-content: center; z-index: 30; text-align: center; }
+        .options-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 90%; max-width: 500px; margin-top: 15px; }
+        .option-btn { padding: 15px; background-color: #34495e; color: white; border: 2px solid #7f8c8d; border-radius: 8px; cursor: pointer; font-size: 16px; }
+        #start-screen { display: flex; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(15, 15, 25, 0.95); flex-direction: column; align-items: center; justify-content: center; z-index: 50; }
+        .play-btn { width: 220px; height: 70px; background-color: #00f2fe; color: #111; border: none; border-radius: 50px; font-size: 24px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-
+    <audio id="bg-music" src="bgm.mp3" loop></audio>
     <div id="ui-layer">
         <div id="score-board">
-            得分: <span id="current-score">0</span> | 歷史最高分: <span id="high-score">0</span>
+            <div>得分: <span id="current-score">0</span> | 歷史最高分: <span id="high-score">0</span></div>
+            <button id="mute-btn">🔊 音樂：開</button>
         </div>
         <div id="shield-timer">🛡️ 護罩剩餘時間: 5.0 秒</div>
     </div>
-
     <div id="game-container">
+        <div id="start-screen">
+            <h1 style="color: #f1c40f;">方塊衝刺挑戰賽</h1>
+            <button class="play-btn" onclick="startGame()">▶ PLAY</button>
+        </div>
         <div id="player"></div>
         <div id="ground"></div>
-
         <div id="quiz-modal" class="modal">
-            <h2 id="modal-title">💥 偵測到碰撞！請答題原地復活 💥</h2>
-            <p id="quiz-question">題目載入中...</p>
+            <h2 id="modal-title">💥 答題復活 💥</h2>
+            <p id="quiz-question"></p>
             <div class="options-container" id="quiz-options"></div>
         </div>
-
         <div id="gameover-modal" class="modal">
-            <h2 style="color: #e74c3c; font-size: 32px;">Game Over</h2>
-            <p style="font-size: 18px;">答錯了！復活失敗。</p>
-            <p style="font-size: 22px;">最終得分: <span id="final-score">0</span></p>
-            <button class="btn" style="width: 200px; height: 55px;" onclick="resetGame()">重新開始</button>
+            <h2 style="color: #e74c3c;">Game Over</h2>
+            <p>得分: <span id="final-score">0</span></p>
+            <button style="width: 180px; height: 50px; font-size: 18px; background-color: #2ecc71; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 4px #27ae60; margin-top: 15px;" onclick="location.reload()">重新載入</button>
         </div>
     </div>
-
     <div id="controls">
-        <button id="btn-up" class="btn">▲ 跳躍 (上)</button>
-        <button id="btn-down" class="btn">▼ 下蹲 (下)</button>
+        <button id="btn-up" class="btn" onclick="jump()">▲ 跳躍</button>
+        <button id="btn-down" class="btn">▼ 下蹲</button>
     </div>
 
     <script>
+        // --- 1. 所有變數必須在最上方宣告 ---
         const player = document.getElementById('player');
         const container = document.getElementById('game-container');
         const currentScoreEl = document.getElementById('current-score');
@@ -241,51 +77,64 @@
         const quizOptionsEl = document.getElementById('quiz-options');
         const finalScoreEl = document.getElementById('final-score');
         const shieldTimerEl = document.getElementById('shield-timer');
+        const startScreen = document.getElementById('start-screen');
+        const bgMusic = document.getElementById('bg-music');
+        const muteBtn = document.getElementById('mute-btn');
 
         let isJumping = false;
         let isDucking = false;
-        let gameStatus = 'playing';
+        let gameStatus = 'menu'; 
         let score = 0;
-        let highScore = localStorage.getItem('cube_high_score_v6') || 0; // 新版儲存機制
-        
-        const baseSpeed = 6;
-        let currentSpeed = baseSpeed;
+        let highScore = localStorage.getItem('cube_high_score_final') || 0;
+        let currentSpeed = 6;
         let penaltySpeed = 0; 
         let jumpVelocity = 0;
         let playerBottom = 0;
-        const gravity = 0.7; 
-        
         let obstacles = [];
         let spawnTimer = 0;
-
         let isInvincible = false;
         let shieldTimeRemaining = 0;
-        let lastMilestone = 0; 
-        let currentQuizType = 'revive'; 
+        let lastMilestone = 0;
+        let currentQuizType = 'revive';
 
-        // 替換後的國中自然科（生態系）專屬題庫
+        const gravity = 0.7;
+        const baseSpeed = 6;
+
+        // --- 2. 題庫資料[cite: 1] ---
         const quizBank = [
             { q: "蕈類等真菌生物常生長在哪一種生態系內？", a: ["(A) 森林生態系", "(B) 草原生態系", "(C) 沙漠生態系", "(D) 海洋生態系"], correct: 0 },
-            { q: "森林生態系、草原生態系、沙漠生態系等陸域生態系，主要的形成因素為：", a: ["(A) 陽光", "(B) 空氣", "(C) 溫度", "(D) 雨量"], correct: 3 },
-            { q: "蜥蜴、駱駝、仙人掌等生物是生活在下列何種環境中？", a: ["(A) 海邊", "(B) 森林", "(C) 草原", "(D) 沙漠"], correct: 3 },
-            { q: "在亞馬遜河旁的森林生態系為低緯度近赤道的森林，請問它應該屬於哪一種生態系？", a: ["(A) 落葉林", "(B) 混合林", "(C) 熱帶雨林", "(D) 針葉林"], correct: 2 },
-            { q: "「狐獴的眼睛周圍呈黑色，可以防止強光在眼周反射而看不清掠食者。挖洞時會將耳朵閉起來，避免沙子進入。」請問狐獴適合生活在何種生態系？", a: ["(A) 溪流生態系", "(B) 河口生態系", "(C) 森林生態系", "(D) 沙漠生態系"], correct: 3 },
-            { q: "沙漠植物的開花和下列哪一環境因子最有關？", a: ["(A) 土壤", "(B) 光線", "(C) 溫度", "(D) 雨水"], correct: 3 },
-            { q: "在森林、草原及沙漠三大陸域生態系當中，最複雜及最穩定之生態系依序分別是？", a: ["(A) 森林、草原", "(B) 森林、沙漠", "(C) 森林、森林", "(D) 草原、沙漠"], correct: 2 },
-            { q: "關於森林生態系的敘述，下列何者正確？", a: ["(A) 年雨量少，日夜溫差大", "(B) 氣候較為溫暖，生物種類眾多", "(C) 本地區缺乏分解者", "(D) 常見長頸鹿和大象等大型動物"], correct: 1 },
-            { q: "草原生態系中的獵食性動物主要是下列何者？", a: ["(A) 石虎", "(B) 雲豹", "(C) 獅子", "(D) 老虎"], correct: 2 },
-            { q: "下列敘述中，何者與熱帶雨林生態系無關？", a: ["(A) 生物種類繁多", "(B) 是複雜且穩定的生態系", "(C) 雨林的底層住了一群耐陰植物", "(D) 樹木以針葉林為主"], correct: 3 },
-            { q: "出任務的地點其初級消費者特徵通常為跑得快、具有敏銳的視覺、成群活動，請問最有可能在何處？", a: ["(A) 亞馬遜河", "(B) 撒哈拉沙漠", "(C) 非洲大草原", "(D) 加拿大楓葉林"], correct: 2 },
-            { q: "有關熱帶雨林生態系的敘述，下列何者錯誤？", a: ["(A) 生物種類繁多", "(B) 雨林的底層住了一群耐陰植物", "(C) 附生植物攀附在喬木枝幹", "(D) 樹木以針葉林為主"], correct: 3 },
+            { q: "森林生態系、草原生態系、沙漠生態系等陸域生態系，主要因素為？", a: ["(A) 陽光", "(B) 空氣", "(C) 溫度", "(D) 雨量"], correct: 3 },
+            { q: "蜥蜴、駱駝、仙人掌等生物生活在何處？", a: ["(A) 海邊", "(B) 森林", "(C) 草原", "(D) 沙漠"], correct: 3 },
+            { q: "亞馬遜河旁的低緯度森林屬於？", a: ["(A) 落葉林", "(B) 混合林", "(C) 熱帶雨林", "(D) 針葉林"], correct: 2 },
+            { q: "「狐獴眼睛周圍黑色，挖洞會閉耳朵」適合生活在？", a: ["(A) 溪流", "(B) 河口", "(C) 森林", "(D) 沙漠"], correct: 3 },
+            { q: "沙漠植物的開花和下列何者最有關係？", a: ["(A) 土壤", "(B) 光線", "(C) 溫度", "(D) 雨水"], correct: 3 },
+            { q: "陸域生態系中最複雜及穩定的是？", a: ["(A) 森林、草原", "(B) 森林、沙漠", "(C) 森林、森林", "(D) 草原、沙漠"], correct: 2 },
+            { q: "關於森林生態系的敘述，何者正確？", a: ["(A) 雨量少", "(B) 種類繁多", "(C) 缺乏分解者", "(D) 常見長頸鹿"], correct: 1 },
+            { q: "草原生態系中的獵食性動物主要是？", a: ["(A) 石虎", "(B) 雲豹", "(C) 獅子", "(D) 老虎"], correct: 2 },
+            { q: "下列敘述中，何者與熱帶雨林無關？", a: ["(A) 種類繁多", "(B) 穩定", "(C) 耐陰植物", "(D) 針葉林為主"], correct: 3 },
+            { q: "初級消費者跑得快、視覺敏銳、成群活動，最可能在？", a: ["(A) 亞馬遜河", "(B) 撒哈拉", "(C) 非洲大草原", "(D) 楓葉林"], correct: 2 },
             { q: "裸子植物多分布在何種地區？", a: ["(A) 寒帶", "(B) 溫帶", "(C) 熱帶", "(D) 潮間帶"], correct: 1 }
         ];
 
         highScoreEl.innerText = highScore;
 
+        // --- 3. 遊戲函式定義 ---
+        function startGame() {
+            startScreen.style.display = 'none';
+            gameStatus = 'playing';
+            score = 0;
+            penaltySpeed = 0;
+            if (bgMusic.paused) {
+                bgMusic.volume = 0.4;
+                bgMusic.play().catch(e => console.log("Music blocked"));
+            }
+            requestAnimationFrame(update);
+        }
+
         function jump() {
             if (!isJumping && !isDucking && gameStatus === 'playing') {
                 isJumping = true;
-                jumpVelocity = 12.5; 
+                jumpVelocity = 12.5;
                 player.classList.add('jumping-shrink');
             }
         }
@@ -302,41 +151,23 @@
             player.classList.remove('ducking');
         }
 
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Space') jump();
-            if (e.code === 'ArrowDown' || e.code === 'KeyS') startDuck();
-        });
-        window.addEventListener('keyup', (e) => {
-            if (e.code === 'ArrowDown' || e.code === 'KeyS') endDuck();
-        });
-
-        const btnUp = document.getElementById('btn-up');
+        // 下蹲按鈕監聽
         const btnDown = document.getElementById('btn-down');
-
-        btnUp.addEventListener('mousedown', jump);
-        btnUp.addEventListener('touchstart', (e) => { e.preventDefault(); jump(); });
-
         btnDown.addEventListener('mousedown', startDuck);
         btnDown.addEventListener('touchstart', (e) => { e.preventDefault(); startDuck(); });
         btnDown.addEventListener('mouseup', endDuck);
         btnDown.addEventListener('touchend', endDuck);
 
         function update() {
-            if (gameStatus !== 'playing') {
-                requestAnimationFrame(update);
-                return;
-            }
+            if (gameStatus !== 'playing') return;
 
             score += 0.1;
-            let displayScore = Math.floor(score);
-            currentScoreEl.innerText = displayScore;
-            
-            currentSpeed = baseSpeed + (score / 150) + penaltySpeed; 
+            currentScoreEl.innerText = Math.floor(score);
+            currentSpeed = baseSpeed + (score / 150) + penaltySpeed;
 
-            if (displayScore > 0 && displayScore % 250 === 0 && displayScore !== lastMilestone) {
-                lastMilestone = displayScore;
+            if (Math.floor(score) > 0 && Math.floor(score) % 250 === 0 && Math.floor(score) !== lastMilestone) {
+                lastMilestone = Math.floor(score);
                 triggerQuiz('milestone');
-                requestAnimationFrame(update);
                 return;
             }
 
@@ -347,40 +178,33 @@
                     player.classList.remove('invincible');
                     shieldTimerEl.style.display = 'none';
                 } else {
-                    shieldTimerEl.innerText = `🛡️ 護罩剩餘時間: ${shieldTimeRemaining.toFixed(1)} 秒`;
+                    shieldTimerEl.innerText = `🛡️ 護罩: ${shieldTimeRemaining.toFixed(1)}秒`;
                 }
             }
 
             if (isJumping) {
                 playerBottom += jumpVelocity;
                 jumpVelocity -= gravity;
-                
-                if (jumpVelocity < -1) {
-                    player.classList.remove('jumping-shrink');
-                }
-
+                if (jumpVelocity < -1) player.classList.remove('jumping-shrink');
                 if (playerBottom <= 0) {
                     playerBottom = 0;
                     isJumping = false;
-                    jumpVelocity = 0;
                     player.classList.remove('jumping-shrink');
                 }
                 player.style.bottom = playerBottom + 'px';
             }
 
             spawnTimer++;
-            if (spawnTimer > Math.max(28, 100 - (currentSpeed * 2.2))) { 
+            if (spawnTimer > Math.max(30, 80 - (currentSpeed * 2))) {
                 spawnObstacle();
                 spawnTimer = 0;
             }
 
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 let obs = obstacles[i];
-                let currentLeft = parseFloat(obs.el.style.right) || 0;
-                currentLeft += currentSpeed;
-                obs.el.style.right = currentLeft + 'px';
-
-                let obsLeft = container.clientWidth - currentLeft - 40;
+                let right = (parseFloat(obs.el.style.right) || 0) + currentSpeed;
+                obs.el.style.right = right + 'px';
+                let obsLeft = container.clientWidth - right - 40;
 
                 if (obsLeft < -40) {
                     container.removeChild(obs.el);
@@ -388,146 +212,73 @@
                     continue;
                 }
 
-                let playerLeft = 80;
-                let playerRight = 120;
-                let isShrinked = isDucking || (isJumping && player.classList.contains('jumping-shrink'));
-                let playerTop = playerBottom + (isShrinked ? 40 : 80);
-
-                if (obsLeft < playerRight && (obsLeft + 40) > playerLeft) {
-                    let hasCollided = false;
-                    if (obs.type === 'low' && playerBottom < 40) {
-                        hasCollided = true;
-                    } else if (obs.type === 'high' && playerTop > 55 && playerBottom < 95) {
-                        hasCollided = true;
-                    }
-
-                    if (hasCollided) {
+                let pTop = playerBottom + (isDucking || player.classList.contains('jumping-shrink') ? 40 : 80);
+                if (obsLeft < 120 && obsLeft + 40 > 80) {
+                    let hit = (obs.type === 'low' && playerBottom < 40) || (obs.type === 'high' && pTop > 55 && playerBottom < 95);
+                    if (hit) {
                         if (isInvincible) {
-                            // 無敵狀態下直接踩碎/撞碎擋路的障礙物
                             container.removeChild(obs.el);
                             obstacles.splice(i, 1);
                         } else {
                             triggerQuiz('revive');
+                            return;
                         }
                     }
                 }
             }
-
             requestAnimationFrame(update);
         }
 
         function spawnObstacle() {
             const obsEl = document.createElement('div');
-            obsEl.classList.add('obstacle');
+            obsEl.className = 'obstacle';
             const type = Math.random() > 0.5 ? 'low' : 'high';
-            if (type === 'low') {
-                obsEl.style.bottom = '0px'; 
-            } else {
-                obsEl.style.bottom = '55px'; 
-            }
+            obsEl.style.bottom = type === 'low' ? '0px' : '55px';
             obsEl.style.right = '-40px';
             container.appendChild(obsEl);
             obstacles.push({ el: obsEl, type: type });
         }
 
         function triggerQuiz(type) {
-            gameStatus = 'quiz'; 
+            gameStatus = 'quiz';
             currentQuizType = type;
             quizModal.style.display = 'flex';
-            
-            if (type === 'revive') {
-                modalTitle.innerHTML = "💥 偵測到碰撞！請答題原地復活 💥";
-                modalTitle.style.color = "#f1c40f";
-            } else {
-                modalTitle.innerHTML = "課堂抽考 答題獲得護盾";
-                modalTitle.style.color = "#00f2fe";
-            }
-
-            const randomQuiz = quizBank[Math.floor(Math.random() * quizBank.length)];
-            quizQuestionEl.innerText = randomQuiz.q;
+            const q = quizBank[Math.floor(Math.random() * quizBank.length)];
+            quizQuestionEl.innerText = q.q;
             quizOptionsEl.innerHTML = '';
-
-            randomQuiz.a.forEach((option, index) => {
-                const btn = document.createElement('button');
-                btn.classList.add('option-btn');
-                btn.innerText = option;
-                btn.onclick = () => checkAnswer(index, randomQuiz.correct);
-                quizOptionsEl.appendChild(btn);
+            q.a.forEach((opt, idx) => {
+                const b = document.createElement('button');
+                b.className = 'option-btn';
+                b.innerText = opt;
+                b.onclick = () => {
+                    quizModal.style.display = 'none';
+                    if (idx === q.correct) {
+                        gameStatus = 'playing';
+                        isInvincible = true;
+                        shieldTimeRemaining = (type === 'revive' ? 1.5 : 5);
+                        player.classList.add('invincible');
+                        shieldTimerEl.style.display = 'block';
+                        requestAnimationFrame(update);
+                    } else {
+                        if (type === 'revive') gameOver();
+                        else { gameStatus = 'playing'; penaltySpeed += 2; requestAnimationFrame(update); }
+                    }
+                };
+                quizOptionsEl.appendChild(b);
             });
-        }
-
-        function checkAnswer(selected, correct) {
-            quizModal.style.display = 'none';
-            
-            if (currentQuizType === 'revive') {
-                if (selected === correct) {
-                    gameStatus = 'playing';
-                    penaltySpeed = 0; 
-                    endDuck();
-                    player.classList.remove('jumping-shrink');
-                    
-                    // 【關鍵修正】不清除障礙物(clearAllObstacles已被拔除)
-                    // 同時主動贈送 1.5 秒無敵防護罩，防止玩家因彈窗剛關閉而來不及反應秒死
-                    isInvincible = true;
-                    shieldTimeRemaining = 1.5; 
-                    player.classList.add('invincible');
-                    shieldTimerEl.style.display = 'block';
-                    shieldTimerEl.innerText = `🛡️ 復活無敵: ${shieldTimeRemaining.toFixed(1)} 秒`;
-                } else {
-                    gameOver();
-                }
-            } else {
-                gameStatus = 'playing';
-                if (selected === correct) {
-                    isInvincible = true;
-                    shieldTimeRemaining = 5.0;
-                    player.classList.add('invincible');
-                    shieldTimerEl.style.display = 'block';
-                } else {
-                    penaltySpeed += 2.5; 
-                    score += 0.1; 
-                }
-                endDuck();
-                player.classList.remove('jumping-shrink');
-            }
-        }
-
-        function clearAllObstacles() {
-            obstacles.forEach(obs => container.removeChild(obs.el));
-            obstacles = [];
         }
 
         function gameOver() {
             gameStatus = 'gameover';
             gameoverModal.style.display = 'flex';
             finalScoreEl.innerText = Math.floor(score);
-            shieldTimerEl.style.display = 'none';
-
-            if (score > highScore) {
-                highScore = Math.floor(score);
-                localStorage.setItem('cube_high_score_v6', highScore);
-                highScoreEl.innerText = highScore;
-            }
+            if (score > highScore) localStorage.setItem('cube_high_score_final', Math.floor(score));
         }
 
-        function resetGame() {
-            gameoverModal.style.display = 'none';
-            shieldTimerEl.style.display = 'none';
-            clearAllObstacles(); // 真正死透重新開始時才洗掉所有障礙物
-            score = 0;
-            penaltySpeed = 0;
-            lastMilestone = 0;
-            playerBottom = 0;
-            player.style.bottom = '0px';
-            isInvincible = false;
-            shieldTimeRemaining = 0;
-            player.classList.remove('invincible');
-            player.classList.remove('jumping-shrink');
-            endDuck();
-            gameStatus = 'playing';
-        }
-
-        requestAnimationFrame(update);
+        muteBtn.onclick = () => {
+            bgMusic.muted = !bgMusic.muted;
+            muteBtn.innerText = bgMusic.muted ? "🔇 音樂：關" : "🔊 音樂：開";
+        };
     </script>
 </body>
 </html>
