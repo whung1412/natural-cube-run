@@ -96,6 +96,8 @@
         let shieldTimeRemaining = 0;
         let lastMilestone = 0;
         let currentQuizType = 'revive';
+        let reviveCount = 0; // 紀錄目前已經復活幾次
+        let availableQuizzes = []; // 目前還可以抽的題目池
 
         const gravity = 0.7;
         const baseSpeed = 6;
@@ -158,6 +160,27 @@
         btnDown.addEventListener('mouseup', endDuck);
         btnDown.addEventListener('touchend', endDuck);
 
+        // --- 【電腦版鍵盤優化】支援 W/S、空白鍵以及上下方向鍵 ---
+        window.addEventListener('keydown', (e) => {
+            // 按下「上方向鍵」、「W鍵」或「空白鍵」都會觸發跳躍
+            if (e.key === 'ArrowUp' || e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Space') {
+                e.preventDefault(); // 防止按方向鍵時網頁跟著上下滾動
+                jump();
+            }
+            // 按下「下方向鍵」或「S鍵」觸發下蹲
+            if (e.key === 'ArrowDown' || e.code === 'ArrowDown' || e.code === 'KeyS') {
+                e.preventDefault(); // 防止網頁跟著滾動
+                startDuck();
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            // 放開「下方向鍵」或「S鍵」時解除下蹲，恢復原狀
+            if (e.key === 'ArrowDown' || e.code === 'ArrowDown' || e.code === 'KeyS') {
+                endDuck();
+            }
+        });
+
         function update() {
             if (gameStatus !== 'playing') return;
 
@@ -212,9 +235,23 @@
                     continue;
                 }
 
-                let pTop = playerBottom + (isDucking || player.classList.contains('jumping-shrink') ? 40 : 80);
+                // 當 X 軸重疊時 (玩家固定在 Left 80px ~ 120px)
                 if (obsLeft < 120 && obsLeft + 40 > 80) {
-                    let hit = (obs.type === 'low' && playerBottom < 40) || (obs.type === 'high' && pTop > 55 && playerBottom < 95);
+                    // 1. 計算玩家當前的 Y 軸上下邊界
+                    let isShrinked = isDucking || (isJumping && player.classList.contains('jumping-shrink'));
+                    let pBottom = playerBottom;
+                    let pTop = playerBottom + (isShrinked ? 40 : 80);
+
+                    // 2. 動態抓取障礙物當前的實質 Y 軸上下邊界
+                    let oBottom = parseFloat(obs.el.style.bottom) || 0;
+                    let oHeight = parseFloat(obs.el.style.height) || 40; // 如果沒抓到高度，預設為一格高 (40px)
+                    let oTop = oBottom + oHeight;
+
+                    // 3. 【全新動態碰撞判定】
+                    // 只要玩家的頭頂 (pTop) 高於障礙物底部 (oBottom)，
+                    // 且玩家的腳底 (pBottom) 低於障礙物頂部 (oTop)，就是重疊碰撞！
+                    let hit = (pTop > oBottom && pBottom < oTop);
+
                     if (hit) {
                         if (isInvincible) {
                             container.removeChild(obs.el);
@@ -233,19 +270,43 @@
             const obsEl = document.createElement('div');
             obsEl.className = 'obstacle';
             const type = Math.random() > 0.5 ? 'low' : 'high';
-            obsEl.style.bottom = type === 'low' ? '0px' : '55px';
+            
+            if (type === 'low') {
+                obsEl.style.bottom = '0px'; 
+                obsEl.style.height = '40px'; // 地面障礙物維持 1 格高
+            } else {
+                // 【完美修正】空中障礙物移到更高的位置，並拉長高度
+                obsEl.style.bottom = '55px';  // 讓它高高懸空
+                obsEl.style.height = '70px';  // 拉長它，做成一道空中阻礙
+            }
+            
             obsEl.style.right = '-40px';
             container.appendChild(obsEl);
             obstacles.push({ el: obsEl, type: type });
         }
 
         function triggerQuiz(type) {
+            // 如果是撞到障礙物，且復活次數已經達到 3 次，直接 Game Over
+            if (type === 'revive' && reviveCount >= 3) {
+                gameOver();
+                return;
+            }
+
             gameStatus = 'quiz';
             currentQuizType = type;
             quizModal.style.display = 'flex';
             const q = quizBank[Math.floor(Math.random() * quizBank.length)];
             quizQuestionEl.innerText = q.q;
             quizOptionsEl.innerHTML = '';
+            
+            // --- 【完美修正】根據不同類型，顯示完全不同的大標題與小標題 ---
+            if (type === 'revive') {
+                modalTitle.innerHTML = `💥 偵測到碰撞！請答題原地復活 💥<br><span style="font-size: 18px; color: #e74c3c; font-weight: normal;">(剩餘復活機會: ${3 - reviveCount} 次)</span>`;
+            } else {
+                // 250 分的抽考，顯示護盾提示，且絕對不會出現「復活次數」的字眼
+                modalTitle.innerHTML = `🎓 課堂抽考！答對獲得護盾 🎓<br><span style="font-size: 18px; color: #2ecc71; font-weight: normal;">(答對獲得 5 秒防護罩，答錯速度會變快喔！)</span>`;
+            }
+
             q.a.forEach((opt, idx) => {
                 const b = document.createElement('button');
                 b.className = 'option-btn';
@@ -255,6 +316,12 @@
                     if (idx === q.correct) {
                         gameStatus = 'playing';
                         isInvincible = true;
+                        
+                        // 只有真正撞到且答對，才扣除復活額度
+                        if (type === 'revive') {
+                            reviveCount++;
+                        }
+
                         shieldTimeRemaining = (type === 'revive' ? 1.5 : 5);
                         player.classList.add('invincible');
                         shieldTimerEl.style.display = 'block';
